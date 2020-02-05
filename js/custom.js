@@ -1,22 +1,7 @@
-const cleanHTML_table = $('table')[0].innerHTML
-const cleanHTML_stats = $('#deskriptorer').html()
-
-$('table')[0].innerHTML += `
-  <tr>
-    <td>I Alt: </td>
-    <td>0</td>
-    <td>0%</td>
-    <td></td>
-    <td></td>
-    <td>0</td>
-  </tr>
-`
-
 let hyppighedstabel = []
 
 function cleanTable() {
-  $('table')[0].innerHTML = cleanHTML_table
-  $('#stats').html(cleanHTML_stats)
+  $('tbody')[0].innerHTML = ''
 }
 
 function tonumber(str) {
@@ -24,7 +9,11 @@ function tonumber(str) {
 }
 
 function tostring(num) {
-  return num.toString().replace('.', ',')
+  return num.toFixed(2).toString().replace('.', ',').replace(',00', '')
+}
+
+function keySum(key) {
+  return hyppighedstabel.map(v => v[key]).reduce((a,b) => a + b, 0)
 }
 
 function h(val, arr) {
@@ -40,6 +29,8 @@ function f(val, arr) {
 }
 
 function updateTable() {
+  cleanTable()
+
   const field = $('#obsInput').val($('#obsInput').val().replace(/  +/g, ' ').replace(/\./g, ',').replace(/[^0-9, ]/g, ''))
   const rawObs = field.val()
     .split(' ')
@@ -69,9 +60,24 @@ function updateTable() {
 
     v.H = i === 0 ? v.h : hyppighedstabel[i - 1].H + v.h
     v.F = i === 0 ? v.f : hyppighedstabel[i - 1].F + v.f
+
+    v.xh = v.h * v._num
   }
 
-  console.table(hyppighedstabel);
+  hyppighedstabel.push({
+    x: 'I alt:',
+    h: keySum('h'),
+    f: tostring(keySum('f')),
+    H: '',
+    F: '',
+    xh: tostring(keySum('xh'))
+  })
+
+  hyppighedstabel.forEach(v => {
+    
+  })
+
+  console.table(hyppighedstabel)
 }
 
-document.addEventListener('keyup', updateTable);
+document.addEventListener('keyup', updateTable)
