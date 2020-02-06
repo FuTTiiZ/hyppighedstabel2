@@ -1,7 +1,14 @@
+const table = $('tbody')[0]
+
 let hyppighedstabel = []
 
+const cleanHTML = table.innerHTML
+function resetTable() {
+  table.innerHTML = cleanHTML
+}
+
 function cleanTable() {
-  $('tbody')[0].innerHTML = ''
+  table.innerHTML = ''
 }
 
 function tonumber(str) {
@@ -9,6 +16,7 @@ function tonumber(str) {
 }
 
 function tostring(num) {
+  if (num === '') return num
   return num.toFixed(2).toString().replace('.', ',').replace(',00', '')
 }
 
@@ -64,20 +72,34 @@ function updateTable() {
     v.xh = v.h * v._num
   }
 
+  if (hyppighedstabel.length === 0) return resetTable()
+
   hyppighedstabel.push({
     x: 'I alt:',
     h: keySum('h'),
-    f: tostring(keySum('f')),
+    f: keySum('f'),
     H: '',
     F: '',
-    xh: tostring(keySum('xh'))
+    xh: keySum('xh')
   })
 
   hyppighedstabel.forEach(v => {
-    
+    table.innerHTML += `
+      <tr>
+        <td>${v.x}</td>
+        <td>${v.h}</td>
+        <td>${tostring(v.f)}%</td>
+        <td>${v.H}</td>
+        <td>${tostring(v.F)}${v.x === 'I alt:' ? '' : '%'}</td>
+        <td>${tostring(v.xh)}</td>
+      </tr>
+    `
   })
 
   console.table(hyppighedstabel)
 }
 
-document.addEventListener('keyup', updateTable)
+document.addEventListener('keyup', e => {
+  if (!($('#obsInput').is(':focus') || $('#intInput').is(':focus'))) return
+  updateTable()
+})
