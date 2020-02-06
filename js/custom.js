@@ -3,8 +3,10 @@ const table = $('tbody')[0]
 let hyppighedstabel = []
 
 const cleanHTML = table.innerHTML
+const cleanStats = $('#stats').html()
 function resetTable() {
   table.innerHTML = cleanHTML
+  $('#stats').html(cleanStats)
 }
 
 function cleanTable() {
@@ -96,7 +98,7 @@ function updateTable() {
     `
   })
 
-  console.table(hyppighedstabel)
+  $('mindsteværdi')
 }
 
 document.addEventListener('keyup', e => {
