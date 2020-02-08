@@ -19,7 +19,7 @@ function tonumber(str) {
 
 function tostring(num) {
   if (num === '') return num
-  return num.toFixed(2).toString().replace('.', ',').replace(',00', '')
+  return num.toFixed(2).toString().replace('.', ',').replace(/,?0+$/g, '')
 }
 
 function keySum(key) {
@@ -27,12 +27,6 @@ function keySum(key) {
 }
 
 function h(val, arr) {
-  let occs = 0
-  arr.forEach(v => v === val ? occs++ : 0)
-  return occs
-}
-
-function f(val, arr) {
   let occs = 0
   arr.forEach(v => v === val ? occs++ : 0)
   return occs
@@ -98,7 +92,13 @@ function updateTable() {
     `
   })
 
-  $('mindsteværdi')
+  const first = hyppighedstabel[0]
+  const last = hyppighedstabel[hyppighedstabel.length - 2]
+  $('#mindsteværdi').text(first.x)
+  $('#størsteværdi').text(last.x)
+  $('#variationsbredde').text(tostring(last._num - first._num))
+ 
+  $('#middeltal').text()
 }
 
 document.addEventListener('keyup', e => {
