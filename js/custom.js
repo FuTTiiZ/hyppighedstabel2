@@ -32,6 +32,21 @@ function h(val, arr) {
   return occs
 }
 
+function arrString(arr) {
+  let str = ''
+  for (let i = 0; i < arr.length; i++) {
+    const v = arr[i]
+    if (i === arr.length - 2) {
+      str += `${v} og `
+    } else if (i === arr.length - 1) {
+      str += v
+    } else {
+      str += `${v}, `
+    }
+  }
+  return str
+}
+
 function updateTable() {
   cleanTable()
 
@@ -70,6 +85,35 @@ function updateTable() {
 
   if (hyppighedstabel.length === 0) return resetTable()
 
+  let typetalCap = 0
+  let typetalArr = []
+
+  let kvartilState = 1
+  let kvartilArr = []
+  for (row of hyppighedstabel) {
+    if (row.h === typetalCap) {
+      typetalArr.push(row.x)
+    } else if (row.h > typetalCap) {
+      typetalArr = [row.x]
+      typetalCap = row.h
+    }
+
+    if (row.F >= kvartilState * 25) {
+      kvartilArr.push(row.x)
+      kvartilState++
+    }
+    if (row.F >= kvartilState * 25) {
+      kvartilArr.push(row.x)
+      kvartilState++
+    }
+    if (row.F >= kvartilState * 25) {
+      kvartilArr.push(row.x)
+      kvartilState++
+    }
+  }
+
+  kvartilArr = kvartilArr.slice(0, 3)
+
   hyppighedstabel.push({
     x: 'I alt:',
     h: keySum('h'),
@@ -94,11 +138,18 @@ function updateTable() {
 
   const first = hyppighedstabel[0]
   const last = hyppighedstabel[hyppighedstabel.length - 2]
+
   $('#mindsteværdi').text(first.x)
+
   $('#størsteværdi').text(last.x)
+
   $('#variationsbredde').text(tostring(last._num - first._num))
  
-  $('#middeltal').text()
+  $('#middeltal').text(tostring(keySum('xh') / keySum('h')))
+
+  $('#typetal').text(arrString(typetalArr))
+  
+  $('#kvartilsæt').text(arrString(kvartilArr))
 }
 
 document.addEventListener('keyup', e => {
