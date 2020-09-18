@@ -30,16 +30,16 @@ const cleanTable = () => {
   table.innerHTML = ''
 }
 
-const tonumber = (str) => {
+const tonumber = str => {
   return parseFloat(str.replace(',', '.'))
 }
 
-const tostring = (num) => {
+const tostring = num => {
   if (num === '') return num
   return num.toFixed(2).toString().replace('.', ',').replace(/,?0+$/g, '')
 }
 
-const keySum = (key) => {
+const keySum = key => {
   return hyppighedstabel.map(v => v[key]).reduce((a,b) => a + b, 0)
 }
 
@@ -49,7 +49,7 @@ const h = (val, arr) => {
   return occs
 }
 
-const arrString = (arr) => {
+const arrString = arr => {
   let str = ''
   for (let i = 0; i < arr.length; i++) {
     const v = arr[i]
@@ -72,7 +72,7 @@ const arrBetween = (low, high) => {
   return arr
 }
 
-const updateTable = (field) => {
+const updateTable = field => {
   cleanTable()
 
   const rawObs = field
@@ -134,15 +134,7 @@ const updateTable = (field) => {
       typetalCap = row.h
     }
 
-    if (row.F >= kvartilState * 25) {
-      kvartilArr.push(row.x)
-      kvartilState++
-    }
-    if (row.F >= kvartilState * 25) {
-      kvartilArr.push(row.x)
-      kvartilState++
-    }
-    if (row.F >= kvartilState * 25) {
+    for (let i = 0; i < 3; i++) if (row.F >= kvartilState * 25) {
       kvartilArr.push(row.x)
       kvartilState++
     }
@@ -152,16 +144,20 @@ const updateTable = (field) => {
 
   if (grouped) {
     const groupedObs = []
-    for (let i = uniqueObs[0] - uniqueObs[0] % 3; i < uniqueObs[uniqueObs.length - 1]; i += interval) {
-      groupedObs.push({_nums:[i, i + interval], x: `]${i};${i + interval}]`, count: 0}) 
+    for (let i = uniqueObs[0] - uniqueObs[0] % 3; i <= uniqueObs[uniqueObs.length - 1]; i += interval) {
+      groupedObs.push({_nums:[i, i + interval], x: `${i === uniqueObs[0] && i === uniqueObs[0] - uniqueObs[0] % 3 ? '[' : ']'}${i};${i + interval}]`, count: 0})
     }
 
     console.log(groupedObs)
     console.log(hyppighedstabel)
 
-    hyppighedstabel.forEach(() => {
-
+    groupedObs.forEach(group => {
+      hyppighedstabel.forEach(row => {
+        row._num > group._nums[0] && row._num <= group._nums[1] ? group.count += row.h : 0
+      })
     })
+
+    
 
   } else {
     hyppighedstabel.push({
@@ -200,13 +196,10 @@ const updateTable = (field) => {
     $('#typetal').text(arrString(typetalArr))
     
     $('#kvartilsæt').text(arrString(kvartilArr))
-
-    history.pushState(null, null, `?o=${btoa(field)}&i=${interval}`)
   }
+  history.pushState(null, null, `?o=${btoa(field)}&i=${interval}`)
 }
 updateTable(urlObsData)
-
-console.log(btoa(urlObsData))
 
 $('#obsInput').val(urlObsData)
 $('#intInput').val(urlIntervalData)
