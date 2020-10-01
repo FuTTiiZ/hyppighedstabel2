@@ -39,8 +39,8 @@ const tostring = num => {
   return num.toFixed(2).toString().replace('.', ',').replace(/,?0+$/g, '')
 }
 
-const keySum = key => {
-  return hyppighedstabel.map(v => v[key]).reduce((a,b) => a + b, 0)
+const keySum = (key, obj = hyppighedstabel) => {
+  return obj.map(v => v[key]).reduce((a,b) => a + b, 0)
 }
 
 const h = (val, arr) => {
@@ -143,60 +143,98 @@ const updateTable = field => {
   kvartilArr = kvartilArr.slice(0, 3)
 
   if (grouped) {
+    $('#fill').prop('checked', grouped)
+
     const groupedObs = []
     for (let i = uniqueObs[0] - uniqueObs[0] % 3; i <= uniqueObs[uniqueObs.length - 1]; i += interval) {
-      groupedObs.push({_nums:[i, i + interval], x: `${i === uniqueObs[0] && i === uniqueObs[0] - uniqueObs[0] % 3 ? '[' : ']'}${i};${i + interval}]`, count: 0})
+      groupedObs.push({_nums:[i, i + interval], x: `${i === uniqueObs[0] && i === uniqueObs[0] - uniqueObs[0] % 3 ? '[' : ']'}${i};${i + interval}]`, h: 0, f: 0})
     }
+
+    groupedObs.forEach((group, i) => {
+      hyppighedstabel.forEach(row => {
+        if (!(row._num > group._nums[0] && row._num <= group._nums[1])) return
+
+        group.h += row.h
+        group.f += row.f
+
+      })
+
+      group.H = i === 0 ? group.h : groupedObs[i - 1].H + group.h
+      group.F = i === 0 ? group.f : groupedObs[i - 1].F + group.f
+    })
+
+    // removes entries with a h-value of 0 in the beginning
+    for (let i = 0; i < groupedObs.length; i++) {
+      if (groupedObs[i].h !== 0) break
+      groupedObs.shift()
+    }
+
+    // removes entries with a h-value of 0 in the end
+    let popTimes = 0
+    for (let i = 0; i < groupedObs.length; i++) {
+      if (groupedObs[groupedObs.length - (i + 1)].h !== 0) break
+      popTimes++
+    }
+    for (let i = 0; i < popTimes; i++) groupedObs.pop()
+
+    groupedObs.push({
+      x: 'I alt:',
+      h: keySum('h', groupedObs),
+      f: keySum('f', groupedObs),
+      H: '',
+      F: ''
+    })
 
     console.log(groupedObs)
     console.log(hyppighedstabel)
 
-    groupedObs.forEach(group => {
-      hyppighedstabel.forEach(row => {
-        row._num > group._nums[0] && row._num <= group._nums[1] ? group.count += row.h : 0
-      })
-    })
-
-    
-
-  } else {
-    hyppighedstabel.push({
-      x: 'I alt:',
-      h: keySum('h'),
-      f: keySum('f'),
-      H: '',
-      F: '',
-      xh: keySum('xh')
-    })
-
-    hyppighedstabel.forEach(v => {
-      table.innerHTML += `
+    groupedObs.forEach(v => table.innerHTML += `
         <tr>
           <td>${v.x}</td>
           <td>${v.h}</td>
           <td>${tostring(v.f)}%</td>
           <td>${v.H}</td>
           <td>${tostring(v.F)}${v.x === 'I alt:' ? '' : '%'}</td>
-          <td>${tostring(v.xh)}</td>
+          <td></td>
         </tr>
-      `
-    })
+      `)
+  } 
+  
+  hyppighedstabel.push({
+    x: 'I alt:',
+    h: keySum('h'),
+    f: keySum('f'),
+    H: '',
+    F: '',
+    xh: keySum('xh')
+  })
+  
+  if (!grouped) hyppighedstabel.forEach(v => table.innerHTML += `
+    <tr>
+      <td>${v.x}</td>
+      <td>${v.h}</td>
+      <td>${tostring(v.f)}%</td>
+      <td>${v.H}</td>
+      <td>${tostring(v.F)}${v.x === 'I alt:' ? '' : '%'}</td>
+      <td>${tostring(v.xh)}</td>
+    </tr>
+  `)
+  
+  const first = hyppighedstabel[0]
+  const last = hyppighedstabel[hyppighedstabel.length - 2]
 
-    const first = hyppighedstabel[0]
-    const last = hyppighedstabel[hyppighedstabel.length - 2]
+  $('#mindsteværdi').text(first.x)
 
-    $('#mindsteværdi').text(first.x)
+  $('#størsteværdi').text(last.x)
 
-    $('#størsteværdi').text(last.x)
+  $('#variationsbredde').text(tostring(last._num - first._num))
 
-    $('#variationsbredde').text(tostring(last._num - first._num))
+  $('#middeltal').text(tostring(keySum('xh') / keySum('h')))
 
-    $('#middeltal').text(tostring(keySum('xh') / keySum('h')))
-
-    $('#typetal').text(arrString(typetalArr))
-    
-    $('#kvartilsæt').text(arrString(kvartilArr))
-  }
+  $('#typetal').text(arrString(typetalArr))
+  
+  $('#kvartilsæt').text(arrString(kvartilArr))
+  
   history.pushState(null, null, `?o=${btoa(field)}&i=${interval}`)
 }
 updateTable(urlObsData)
@@ -207,7 +245,10 @@ $('#intInput').val(urlIntervalData)
 
 const eventHandler = e => {
   if (e.type === 'keyup' && !($('#obsInput').is(':focus') || $('#intInput').is(':focus'))) return
+  
   updateGrouped()
+  $('#fill').attr('disabled', grouped)
+
   updateTable($('#obsInput').val($('#obsInput').val().replace(/  +/g, ' ').replace(/\./g, ',').replace(/[^0-9, -]/g, '')).val())
 }
 
